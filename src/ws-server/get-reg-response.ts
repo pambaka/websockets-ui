@@ -1,24 +1,30 @@
 import { MESSAGE_TYPE } from "../const";
-import { WsMessage } from "../types";
+import { User, WsMessage } from "../types";
+import Users from "../users";
 
-const getRegResponse: (request: WsMessage, index: string) => WsMessage | undefined = (request, index) => {
+const getRegResponse: (request: WsMessage) => WsMessage | undefined = (request) => {
     try {
-        const { name } = JSON.parse(request.data);
+        const { name, password }: {name: User['name'], password: User['password']} = JSON.parse(request.data);
+
+        let error = false;
+        let errorText = '';
+        
+        const index = Users.getUserIndex(name);
+        if (index >= 0 && Users.value[index].password !== password) {
+            error = true;
+            errorText = 'Invalid password';
+        } 
+
         const response: WsMessage =  {
             type: MESSAGE_TYPE.reg,
-            data: JSON.stringify({
-              name,
-              index,
-              error: false,
-              errorText: "",
-            }),
+            data: JSON.stringify({ name, index, error, errorText }),
             id: 0,
           };
 
-          return response;
+        return response;
     }
     catch (error) {
-        if (error instanceof Error) console.log(error.message)
+        if (error instanceof Error) console.error(error.message)
     }
 }
 

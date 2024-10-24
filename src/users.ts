@@ -6,6 +6,10 @@ class Users {
     static add = (user: User) => {
         this.value.push(user);
     }
+
+    static getUserIndex = (userName: string) => {
+        return this.value.map(user => user.name).indexOf(userName);
+    }
 }
 
 export default Users;

@@ -4,7 +4,6 @@ import { User, WsMessage } from "./src/types";
 import { MESSAGE_TYPE } from "./src/const";
 import getRegResponse from "./src/ws-server/get-reg-response";
 import Users from "./src/users";
-import crypto from 'node:crypto';
 
 const HTTP_PORT = 8181;
 
@@ -24,11 +23,11 @@ wsServer.on("connection", (ws: WebSocket) => {
     switch (request.type) {
         case MESSAGE_TYPE.reg:
             const { name, password }: {name: User['name'], password: User['password']} = JSON.parse(request.data);
-            const index = crypto.randomUUID();
+ 
+            const index = Users.getUserIndex(name);
+            if (index === -1) Users.add({ name, password });
 
-            Users.add({name, password, index});
-
-            response = getRegResponse(request, index);
+            response = getRegResponse(request);
             break;
         default:
             break;

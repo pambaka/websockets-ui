@@ -12,30 +12,32 @@ httpServer.listen(HTTP_PORT);
 
 const WS_PORT = 3000;
 
-const wsServer = new WebSocketServer ({ port: WS_PORT });
+const wsServer = new WebSocketServer({ port: WS_PORT });
 wsServer.on("connection", (ws: WebSocket) => {
-  ws.on("message", (msg) => {
-    try {
-    const request: WsMessage  = JSON.parse(msg.toString());    
+    ws.on("message", (msg) => {
+        try {
+            const request: WsMessage = JSON.parse(msg.toString());
 
-    let response: WsMessage | undefined;
+            let response: WsMessage | undefined;
 
-    switch (request.type) {
-        case MESSAGE_TYPE.reg:
-            const { name, password }: {name: User['name'], password: User['password']} = JSON.parse(request.data);
- 
-            const index = Users.getUserIndex(name);
-            if (index === -1) Users.add({ name, password });
+            switch (request.type) {
+                case MESSAGE_TYPE.reg:
+                    const { name, password }: { name: User["name"]; password: User["password"] } = JSON.parse(
+                        request.data,
+                    );
 
-            response = getRegResponse(request);
-            break;
-        default:
-            break;
-    }
+                    const index = Users.getUserIndex(name);
+                    if (index === -1) Users.add({ name, password });
 
-    ws.send(JSON.stringify(response));    
-  } catch (error) {
-    if (error instanceof Error) console.error(error.message);
-    }
-})
+                    response = getRegResponse(request);
+                    break;
+                default:
+                    break;
+            }
+
+            ws.send(JSON.stringify(response));
+        } catch (error) {
+            if (error instanceof Error) console.error(error.message);
+        }
+    });
 });

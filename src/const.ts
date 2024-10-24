@@ -1,3 +1,3 @@
 export const MESSAGE_TYPE = {
-  reg: "reg",
+    reg: "reg",
 } as const;

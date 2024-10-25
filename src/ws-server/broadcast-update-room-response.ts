@@ -6,7 +6,7 @@ import { wsConnections } from "./data";
 const broadcastUpdateRoomResponse = () => {
     const response: WsResponse = {
         type: RESPONSE_TYPE.updateRoom,
-        data: JSON.stringify(Rooms.value),
+        data: JSON.stringify(Rooms.availableRooms),
         id: 0,
     };
 

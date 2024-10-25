@@ -13,6 +13,11 @@ export interface Room {
     roomUsers: RoomUser[];
 }
 
+export interface Game {
+    gameId: string;
+    gameUsers: [RoomUser, RoomUser];
+}
+
 interface WsMessage {
     data: string;
     id: 0;

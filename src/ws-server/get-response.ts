@@ -3,6 +3,8 @@ import { WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
 import Rooms from "../rooms";
+import Games from "../games";
+import sendCreateGameResponse from "./send-create-game-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -12,6 +14,14 @@ const getResponse = (request: WsRequest, name?: string) => {
                 Rooms.createRoom(name);
                 broadcastUpdateRoomResponse();
                 return;
+            },
+            [REQUEST_TYPE.addUserToRoom]: ({ request, name = "" }: { request: WsRequest; name?: string }) => {
+                const roomId: number = JSON.parse(request.data).indexRoom;
+                const roomUsers = Rooms.addUserToRoom(roomId, name);
+                if (roomUsers) {
+                    const index = Games.createGame([roomUsers[0], roomUsers[1]]);
+                    sendCreateGameResponse(index);
+                }
             },
         };
 

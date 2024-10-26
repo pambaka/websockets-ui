@@ -5,6 +5,7 @@ import getRegResponse from "./get-reg-response";
 import Rooms from "../rooms";
 import Games from "../games";
 import sendCreateGameResponse from "./send-create-game-response";
+import sendStartGameResponse from "./send-start-game-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -22,6 +23,14 @@ const getResponse = (request: WsRequest, name?: string) => {
                 if (roomUsers?.length === 2) {
                     const index = Games.createGame([roomUsers[0], roomUsers[1]]);
                     sendCreateGameResponse(index);
+                }
+            },
+            [REQUEST_TYPE.addShips]: ({ request }: { request: WsRequest }) => {
+                const data = JSON.parse(request.data);
+                const { gameId, ships, indexPlayer: playerId } = data;
+
+                if (Games.shouldStart(gameId, ships, playerId)) {
+                    sendStartGameResponse(gameId);
                 }
             },
         };

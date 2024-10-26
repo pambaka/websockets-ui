@@ -12,11 +12,16 @@ export interface Room {
     roomId: string;
     roomUsers: RoomUser[];
 }
+export interface Ship {
+    position: { x: number; y: number };
+    direction: boolean;
+    length: number;
+    type: "small" | "medium" | "large" | "huge";
+}
 
 export interface Game {
     gameId: string;
-    gameUsers: [RoomUser, RoomUser];
-    roomId?: string;
+    gameUsers: { name: string; index: 0 | 1; ships?: Ship[] }[];
 }
 
 export interface Winner {

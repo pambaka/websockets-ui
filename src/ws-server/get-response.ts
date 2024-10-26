@@ -16,9 +16,10 @@ const getResponse = (request: WsRequest, name?: string) => {
                 return;
             },
             [REQUEST_TYPE.addUserToRoom]: ({ request, name = "" }: { request: WsRequest; name?: string }) => {
-                const roomId: number = JSON.parse(request.data).indexRoom;
+                const roomId: string = JSON.parse(request.data).indexRoom;
                 const roomUsers = Rooms.addUserToRoom(roomId, name);
-                if (roomUsers) {
+                broadcastUpdateRoomResponse();
+                if (roomUsers?.length === 2) {
                     const index = Games.createGame([roomUsers[0], roomUsers[1]]);
                     sendCreateGameResponse(index);
                 }

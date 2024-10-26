@@ -9,13 +9,19 @@ export interface User {
 export type RoomUser = Required<Omit<User, "password">>;
 
 export interface Room {
-    roomId: number;
+    roomId: string;
     roomUsers: RoomUser[];
 }
 
 export interface Game {
     gameId: string;
     gameUsers: [RoomUser, RoomUser];
+    roomId?: string;
+}
+
+export interface Winner {
+    name: string;
+    wins: number;
 }
 
 interface WsMessage {

@@ -8,4 +8,6 @@ export const RESPONSE_TYPE = {
     reg: "reg",
     updateRoom: "update_room",
     createGame: "create_game",
+    finishGame: "finish",
+    updataWinners: "update_winners",
 } as const;

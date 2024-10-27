@@ -22,7 +22,7 @@ class Games {
         const games = this.value.filter((game) => game.gameUsers.some((user) => user.name === name));
         if (games.length === 0) return null;
 
-        const index = this.value.map((game) => game.gameId).indexOf(games[0].gameId);
+        const index = this.getGameIndexById(games[0].gameId);
 
         if (index === -1) return null;
 
@@ -35,8 +35,7 @@ class Games {
     };
 
     static shouldStart = (gameId: string, ships: Ship[], playerId: number) => {
-        const index = this.getGameIndexById(gameId);
-        const game = this.value[index];
+        const game = this.getGameById(gameId);
 
         game.gameUsers[playerId].ships = ships;
 
@@ -49,9 +48,24 @@ class Games {
         return this.value.map((game) => game.gameId).indexOf(gameId);
     };
 
+    private static getGameById = (gameId: string) => {
+        return this.value[this.getGameIndexById(gameId)];
+    };
+
     static getGamePlayers = (gameId: string) => {
         const index = this.getGameIndexById(gameId);
         return this.value[index].gameUsers;
+    };
+
+    static setTurn = (gameId: string) => {
+        const game = this.getGameById(gameId);
+        game.turn = Math.round(Math.random()) as 0 | 1;
+
+        return game.turn;
+    };
+
+    static getTurn = (gameId: string) => {
+        return this.getGameById(gameId).turn;
     };
 }
 

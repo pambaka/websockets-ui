@@ -12,4 +12,5 @@ export const RESPONSE_TYPE = {
     finishGame: "finish",
     updataWinners: "update_winners",
     startGame: "start_game",
+    turn: "turn",
 } as const;

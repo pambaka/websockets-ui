@@ -6,6 +6,7 @@ import Rooms from "../rooms";
 import Games from "../games";
 import sendCreateGameResponse from "./send-create-game-response";
 import sendStartGameResponse from "./send-start-game-response";
+import sendTurnResponse from "./send-turn-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -31,6 +32,8 @@ const getResponse = (request: WsRequest, name?: string) => {
 
                 if (Games.shouldStart(gameId, ships, playerId)) {
                     sendStartGameResponse(gameId);
+                    Games.setTurn(gameId);
+                    sendTurnResponse(gameId);
                 }
             },
         };

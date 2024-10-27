@@ -22,6 +22,7 @@ export interface Ship {
 export interface Game {
     gameId: string;
     gameUsers: { name: string; index: 0 | 1; ships?: Ship[] }[];
+    turn?: 0 | 1;
 }
 
 export interface Winner {

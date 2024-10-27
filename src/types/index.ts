@@ -21,9 +21,11 @@ export interface Ship {
 
 export interface Game {
     gameId: string;
-    gameUsers: { name: string; index: 0 | 1; ships?: Ship[] }[];
+    gameUsers: { name: string; index: 0 | 1; ships?: Ship[]; field?: { value: 0 | 1; isAttacked: boolean }[][] }[];
     turn?: 0 | 1;
 }
+
+export type AttackStatus = "miss" | "shot" | "killed";
 
 export interface Winner {
     name: string;

@@ -1,5 +1,5 @@
 import { REQUEST_TYPE } from "../const";
-import { WsRequest } from "../types";
+import { AttackStatus, WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
 import Rooms from "../rooms";
@@ -7,6 +7,7 @@ import Games from "../games";
 import sendCreateGameResponse from "./send-create-game-response";
 import sendStartGameResponse from "./send-start-game-response";
 import sendTurnResponse from "./send-turn-response";
+import sendAttackResponse from "./send-attack-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -35,6 +36,33 @@ const getResponse = (request: WsRequest, name?: string) => {
                     Games.setTurn(gameId);
                     sendTurnResponse(gameId);
                 }
+            },
+            [REQUEST_TYPE.attack]: ({ request }: { request: WsRequest }) => {
+                const data = JSON.parse(request.data);
+                const { x, y }: { x: number; y: number } = data;
+
+                if (data.indexPlayer !== Games.getTurn(data.gameId)) return;
+
+                const player = Games.getGamePlayers(data.gameId);
+
+                const opponentField = player[+!data.indexPlayer].field;
+                if (!opponentField) return;
+
+                let status: AttackStatus = "miss";
+                // if (opponentField[y][x].isAttacked === true) {
+                //     Games.changeTurn(data.gameId);
+                //     sendTurnResponse(data.gameId);
+
+                //     return;
+                // }
+                if (opponentField[y][x].value === 1) {
+                    status = "shot";
+                }
+                opponentField[y][x].isAttacked = true;
+
+                sendAttackResponse(data.gameId, { x, y }, data.indexPlayer, status);
+                if (status === "miss") Games.changeTurn(data.gameId);
+                sendTurnResponse(data.gameId);
             },
         };
 

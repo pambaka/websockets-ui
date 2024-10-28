@@ -98,10 +98,14 @@ class Games {
             if (ship.direction) {
                 for (let i = y; i < y + ship.length; i += 1) {
                     field[i][x].value = 1;
+                    if (ship.length > 1 && i < y + ship.length - 1) field[i][x].next = { x, y: i + 1 };
+                    if (ship.length > 1 && i > y) field[i][x].prev = { x, y: i - 1 };
                 }
             } else {
                 for (let i = x; i < x + ship.length; i += 1) {
                     field[y][i].value = 1;
+                    if (ship.length > 1 && i < x + ship.length - 1) field[y][i].next = { x: i + 1, y };
+                    if (ship.length > 1 && i > x) field[y][i].prev = { x: i - 1, y };
                 }
             }
         });

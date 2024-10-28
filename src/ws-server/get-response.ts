@@ -1,4 +1,4 @@
-import { REQUEST_TYPE, RESPONSE_TYPE } from "../const";
+import { REQUEST_TYPE } from "../const";
 import { AttackStatus, PlayerId, WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
@@ -13,6 +13,9 @@ import broadcastUpdateWinnersResponse from "./broadcast-update-winners-response"
 import sendFinishGameResponse from "./send-finish-game-response";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
 import getUpdateRoomResponse from "./responses/get-update-rooms-response";
+import isShipKilled from "./utils/is-ship-killed";
+import getEmptyCells from "./utils/get-empty-cells";
+import sendAttackAllMissedResponse from "./responses/send-attack-all-missed-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -53,9 +56,9 @@ const getResponse = (request: WsRequest, name?: string) => {
 
                 if (data.indexPlayer !== Games.getTurn(gameId)) return;
 
-                const player = Games.getGamePlayers(gameId);
+                const players = Games.getGamePlayers(gameId);
 
-                const opponentField = player[+!indexPlayer].field;
+                const opponentField = players[+!indexPlayer].field;
                 if (!opponentField) return;
 
                 let status: AttackStatus = "miss";
@@ -66,22 +69,30 @@ const getResponse = (request: WsRequest, name?: string) => {
                 //     return;
                 // }
 
-                if (opponentField[y][x].value === 1) {
-                    status = "shot";
-                    if (opponentField[y][x].isAttacked === false) {
+                const cell = opponentField[y][x];
+
+                if (cell.value === 1) {
+                    if (isShipKilled(opponentField, cell)) status = "killed";
+                    else status = "shot";
+
+                    if (cell.isAttacked === false) {
                         Games.updateCorrectShotsNum(gameId, indexPlayer);
                     }
                 }
-                opponentField[y][x].isAttacked = true;
+                cell.isAttacked = true;
 
                 sendAttackResponse(gameId, { x, y }, indexPlayer, status);
-                if (status === "miss") Games.changeTurn(gameId);
+
+                if (status === "killed") {
+                    const emptyCells = getEmptyCells(opponentField, x, y);
+                    sendAttackAllMissedResponse(gameId, indexPlayer, emptyCells);
+                } else if (status === "miss") Games.changeTurn(gameId);
 
                 if (Games.isFinished(gameId, indexPlayer)) {
-                    Winners.updateTable(player[indexPlayer].name);
+                    Winners.updateTable(players[indexPlayer].name);
                     broadcastUpdateWinnersResponse();
                     sendFinishGameResponse(gameId, indexPlayer);
-                    Games.finishGame(player[indexPlayer].name);
+                    Games.finishGame(players[indexPlayer].name);
                     return;
                 }
 

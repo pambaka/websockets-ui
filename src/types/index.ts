@@ -12,8 +12,11 @@ export interface Room {
     roomId: string;
     roomUsers: RoomUser[];
 }
+
+export type Position = { x: number; y: number };
+
 export interface Ship {
-    position: { x: number; y: number };
+    position: Position;
     direction: boolean;
     length: number;
     type: "small" | "medium" | "large" | "huge";
@@ -21,13 +24,20 @@ export interface Ship {
 
 export type PlayerId = 0 | 1;
 
+export type FieldCell = {
+    value: 0 | 1;
+    isAttacked: boolean;
+    next?: Position;
+    prev?: Position;
+};
+
 export interface Game {
     gameId: string;
     gameUsers: {
         name: string;
         index: PlayerId;
         ships?: Ship[];
-        field?: { value: 0 | 1; isAttacked: boolean }[][];
+        field?: FieldCell[][];
         correctShotsNum?: number;
     }[];
     turn?: PlayerId;

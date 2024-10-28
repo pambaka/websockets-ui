@@ -92,7 +92,7 @@ const getResponse = (request: WsRequest, name?: string) => {
                     Winners.updateTable(players[indexPlayer].name);
                     broadcastUpdateWinnersResponse();
                     sendFinishGameResponse(gameId, indexPlayer);
-                    Games.finishGame(players[indexPlayer].name);
+                    Games.finishGame(gameId);
                     return;
                 }
 

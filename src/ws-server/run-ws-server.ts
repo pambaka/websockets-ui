@@ -1,6 +1,6 @@
 import WebSocket, { WebSocketServer } from "ws";
-import { WsRequest } from "../types";
-import { REQUEST_TYPE } from "../const";
+import { WsRequest, WsResponse } from "../types";
+import { REQUEST_TYPE, RESPONSE_TYPE } from "../const";
 import getResponse from "./get-response";
 import crypto from "node:crypto";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
@@ -10,6 +10,7 @@ import Games from "../games";
 import getFinishGameResponse from "./get-finish-game-response";
 import broadcastUpdateWinnersResponse from "./broadcast-update-winners-response";
 import Winners from "../winners";
+import Users from "../users";
 
 const runWsServer = (port: number) => {
     const wsServer = new WebSocketServer({ port });
@@ -22,10 +23,39 @@ const runWsServer = (port: number) => {
                 const request: WsRequest = JSON.parse(msg.toString());
 
                 if (request.type === REQUEST_TYPE.reg) {
-                    wsConnections.push({ connectionId, userName: JSON.parse(request.data).name, ws });
+                    const { name: userName, password }: { name: string; password: string } = JSON.parse(request.data);
+                    const wsIndex = getWsEntryIndexByKey("userName", userName);
+                    const userIndex = Users.getUserIndex(userName);
+
+                    let error = false;
+                    let errorText = "";
+
+                    if (userIndex !== -1 && Users.value[userIndex].password !== password) {
+                        error = true;
+                        errorText = "Invalid password";
+                    } else if (wsIndex >= 0) {
+                        error = true;
+                        errorText = `User ${userName} is already logged in`;
+                    }
+
+                    if (error) {
+                        const response: WsResponse = {
+                            type: RESPONSE_TYPE.reg,
+                            data: JSON.stringify({
+                                name: userName,
+                                index: -1,
+                                error,
+                                errorText,
+                            }),
+                            id: 0,
+                        };
+                        ws.send(JSON.stringify(response));
+                    } else wsConnections.push({ connectionId, userName, ws });
                 }
 
                 const index = getWsEntryIndexByKey("connectionId", connectionId);
+                if (index === -1) return;
+
                 const name = wsConnections[index].userName;
 
                 let response = getResponse(request, name);

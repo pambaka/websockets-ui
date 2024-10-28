@@ -6,22 +6,12 @@ const getRegResponse: (request: WsRequest) => WsResponse | undefined = (request)
     try {
         const { name, password }: { name: User["name"]; password: User["password"] } = JSON.parse(request.data);
 
-        let error = false;
-        let errorText = "";
-
-        let index = Users.getUserIndex(name);
-
-        if (index >= 0 && Users.value[index].password !== password) {
-            error = true;
-            errorText = "Invalid password";
-        } else if (index === -1) {
-            Users.add({ name, password });
-            index = Users.getUserIndex(name);
-        }
+        Users.add({ name, password });
+        const index = Users.getUserIndex(name);
 
         const response: WsResponse = {
             type: RESPONSE_TYPE.reg,
-            data: JSON.stringify({ name, index, error, errorText }),
+            data: JSON.stringify({ name, index, error: false, errorText: "" }),
             id: 0,
         };
 

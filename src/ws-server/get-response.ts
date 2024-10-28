@@ -1,5 +1,5 @@
 import { REQUEST_TYPE } from "../const";
-import { AttackStatus, PlayerId, WsRequest } from "../types";
+import { PlayerId, WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
 import Rooms from "../rooms";
@@ -7,15 +7,9 @@ import Games from "../games";
 import sendCreateGameResponse from "./send-create-game-response";
 import sendStartGameResponse from "./send-start-game-response";
 import sendTurnResponse from "./send-turn-response";
-import sendAttackResponse from "./send-attack-response";
-import Winners from "../winners";
-import broadcastUpdateWinnersResponse from "./broadcast-update-winners-response";
-import sendFinishGameResponse from "./send-finish-game-response";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
 import getUpdateRoomResponse from "./responses/get-update-rooms-response";
-import isShipKilled from "./utils/is-ship-killed";
-import getEmptyCells from "./utils/get-empty-cells";
-import sendAttackAllMissedResponse from "./responses/send-attack-all-missed-response";
+import handleAttack from "./handle-attack";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -56,47 +50,23 @@ const getResponse = (request: WsRequest, name?: string) => {
 
                 if (data.indexPlayer !== Games.getTurn(gameId)) return;
 
+                handleAttack(gameId, indexPlayer, x, y);
+            },
+            [REQUEST_TYPE.randomAttack]: ({ request }: { request: WsRequest }) => {
+                const { gameId, indexPlayer } = JSON.parse(request.data);
+
+                let x: number = 0;
+                let y: number = 0;
+
                 const players = Games.getGamePlayers(gameId);
-
                 const opponentField = players[+!indexPlayer].field;
-                if (!opponentField) return;
 
-                let status: AttackStatus = "miss";
-                // if (opponentField[y][x].isAttacked === true) {
-                //     Games.changeTurn(data.gameId);
-                //     sendTurnResponse(data.gameId);
+                do {
+                    x = Math.floor(Math.random() * 10);
+                    y = Math.floor(Math.random() * 10);
+                } while (opponentField && opponentField[y][x].isAttacked);
 
-                //     return;
-                // }
-
-                const cell = opponentField[y][x];
-
-                if (cell.value === 1) {
-                    if (isShipKilled(opponentField, cell)) status = "killed";
-                    else status = "shot";
-
-                    if (cell.isAttacked === false) {
-                        Games.updateCorrectShotsNum(gameId, indexPlayer);
-                    }
-                }
-                cell.isAttacked = true;
-
-                sendAttackResponse(gameId, { x, y }, indexPlayer, status);
-
-                if (status === "killed") {
-                    const emptyCells = getEmptyCells(opponentField, x, y);
-                    sendAttackAllMissedResponse(gameId, indexPlayer, emptyCells);
-                } else if (status === "miss") Games.changeTurn(gameId);
-
-                if (Games.isFinished(gameId, indexPlayer)) {
-                    Winners.updateTable(players[indexPlayer].name);
-                    broadcastUpdateWinnersResponse();
-                    sendFinishGameResponse(gameId, indexPlayer);
-                    Games.finishGame(gameId);
-                    return;
-                }
-
-                sendTurnResponse(gameId);
+                handleAttack(gameId, indexPlayer, x, y);
             },
         };
 

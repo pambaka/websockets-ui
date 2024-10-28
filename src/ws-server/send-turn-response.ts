@@ -1,7 +1,7 @@
 import { RESPONSE_TYPE } from "../const";
 import Games from "../games";
 import { WsResponse } from "../types";
-import { getWsEntryIndexByKey, wsConnections } from "./data";
+import sendResponseToGamePlayers from "./send-response-to-game-players";
 
 const sendTurnResponse = (gameId: string) => {
     const turn = Games.getTurn(gameId);
@@ -12,12 +12,7 @@ const sendTurnResponse = (gameId: string) => {
         id: 0,
     };
 
-    const players = Games.getGamePlayers(gameId);
-
-    players.forEach((player) => {
-        const index = getWsEntryIndexByKey("userName", player.name);
-        wsConnections[index].ws.send(JSON.stringify(response));
-    });
+    sendResponseToGamePlayers(gameId, response);
 };
 
 export default sendTurnResponse;

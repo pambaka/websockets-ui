@@ -1,12 +1,11 @@
 import { RESPONSE_TYPE } from "../const";
-import Games from "../games";
-import { AttackStatus, WsResponse } from "../types";
-import { getWsEntryIndexByKey, wsConnections } from "./data";
+import { AttackStatus, PlayerId, WsResponse } from "../types";
+import sendResponseToGamePlayers from "./send-response-to-game-players";
 
 const sendAttackResponse = (
     gameId: string,
     position: { x: number; y: number },
-    currentPlayer: 0 | 1,
+    currentPlayer: PlayerId,
     status: AttackStatus,
 ) => {
     const response: WsResponse = {
@@ -15,11 +14,7 @@ const sendAttackResponse = (
         id: 0,
     };
 
-    const players = Games.getGamePlayers(gameId);
-    players.forEach((player) => {
-        const index = getWsEntryIndexByKey("userName", player.name);
-        wsConnections[index].ws.send(JSON.stringify(response));
-    });
+    sendResponseToGamePlayers(gameId, response);
 };
 
 export default sendAttackResponse;

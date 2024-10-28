@@ -50,11 +50,11 @@ const runWsServer = (port: number) => {
             const isRemoved = Rooms.removeUserFromRooms(name);
             if (isRemoved) broadcastUpdateRoomResponse();
 
-            const winner = Games.finishGame(name);
+            const winner = Games.finishGameByName(name);
 
             if (winner) {
                 Winners.updateTable(winner.name);
-                const response = getFinishGameResponse(winner);
+                const response = getFinishGameResponse(winner.index);
                 wsConnections[getWsEntryIndexByKey("userName", winner.name)].ws.send(JSON.stringify(response));
                 broadcastUpdateWinnersResponse();
             }

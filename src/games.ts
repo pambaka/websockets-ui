@@ -1,5 +1,7 @@
-import { Game, RoomUser, Ship } from "./types";
+import { Game, PlayerId, RoomUser, Ship } from "./types";
 import crypto from "node:crypto";
+
+const shipShots = 20; // 4 + 3 * 2 + 2 * 3 + 4;
 
 class Games {
     static value: Game[] = [];
@@ -18,7 +20,12 @@ class Games {
         return index;
     };
 
-    static finishGame = (name: string) => {
+    static finishGame = (gameId: string) => {
+        const index = this.getGameIndexById(gameId);
+        if (index >= 0) this.value.splice(index, 1);
+    };
+
+    static finishGameByName = (name: string) => {
         const games = this.value.filter((game) => game.gameUsers.some((user) => user.name === name));
         if (games.length === 0) return null;
 
@@ -39,6 +46,7 @@ class Games {
 
         game.gameUsers[playerId].ships = ships;
         game.gameUsers[playerId].field = this.mapShipsToField(ships);
+        game.gameUsers[playerId].correctShotsNum = 0;
 
         if (game.gameUsers.every((user) => !!user.ships)) return true;
 
@@ -60,7 +68,7 @@ class Games {
 
     static setTurn = (gameId: string) => {
         const game = this.getGameById(gameId);
-        game.turn = Math.round(Math.random()) as 0 | 1;
+        game.turn = Math.round(Math.random()) as PlayerId;
 
         return game.turn;
     };
@@ -71,7 +79,7 @@ class Games {
 
     static changeTurn = (gameId: string) => {
         const game = this.getGameById(gameId);
-        game.turn = +!game.turn as 0 | 1;
+        game.turn = +!game.turn as PlayerId;
     };
 
     private static mapShipsToField: (ships: Ship[]) => { value: 0 | 1; isAttacked: boolean }[][] = (ships) => {
@@ -99,6 +107,19 @@ class Games {
         });
 
         return field;
+    };
+
+    static isFinished = (gameId: string, playerId: PlayerId) => {
+        const players = this.getGamePlayers(gameId);
+
+        if (players[playerId].correctShotsNum && players[playerId].correctShotsNum === shipShots) return true;
+
+        return false;
+    };
+
+    static updateCorrectShotsNum = (gameId: string, playerId: PlayerId) => {
+        const players = this.getGamePlayers(gameId);
+        if (players[playerId].correctShotsNum !== undefined) players[playerId].correctShotsNum += 1;
     };
 }
 

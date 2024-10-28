@@ -19,10 +19,18 @@ export interface Ship {
     type: "small" | "medium" | "large" | "huge";
 }
 
+export type PlayerId = 0 | 1;
+
 export interface Game {
     gameId: string;
-    gameUsers: { name: string; index: 0 | 1; ships?: Ship[]; field?: { value: 0 | 1; isAttacked: boolean }[][] }[];
-    turn?: 0 | 1;
+    gameUsers: {
+        name: string;
+        index: PlayerId;
+        ships?: Ship[];
+        field?: { value: 0 | 1; isAttacked: boolean }[][];
+        correctShotsNum?: number;
+    }[];
+    turn?: PlayerId;
 }
 
 export type AttackStatus = "miss" | "shot" | "killed";

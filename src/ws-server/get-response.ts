@@ -1,5 +1,5 @@
 import { REQUEST_TYPE } from "../const";
-import { AttackStatus, WsRequest } from "../types";
+import { AttackStatus, PlayerId, WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
 import Rooms from "../rooms";
@@ -8,6 +8,9 @@ import sendCreateGameResponse from "./send-create-game-response";
 import sendStartGameResponse from "./send-start-game-response";
 import sendTurnResponse from "./send-turn-response";
 import sendAttackResponse from "./send-attack-response";
+import Winners from "../winners";
+import broadcastUpdateWinnersResponse from "./broadcast-update-winners-response";
+import sendFinishGameResponse from "./send-finish-game-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -39,13 +42,14 @@ const getResponse = (request: WsRequest, name?: string) => {
             },
             [REQUEST_TYPE.attack]: ({ request }: { request: WsRequest }) => {
                 const data = JSON.parse(request.data);
-                const { x, y }: { x: number; y: number } = data;
+                const { gameId, x, y, indexPlayer }: { gameId: string; x: number; y: number; indexPlayer: PlayerId } =
+                    data;
 
-                if (data.indexPlayer !== Games.getTurn(data.gameId)) return;
+                if (data.indexPlayer !== Games.getTurn(gameId)) return;
 
-                const player = Games.getGamePlayers(data.gameId);
+                const player = Games.getGamePlayers(gameId);
 
-                const opponentField = player[+!data.indexPlayer].field;
+                const opponentField = player[+!indexPlayer].field;
                 if (!opponentField) return;
 
                 let status: AttackStatus = "miss";
@@ -55,14 +59,27 @@ const getResponse = (request: WsRequest, name?: string) => {
 
                 //     return;
                 // }
+
                 if (opponentField[y][x].value === 1) {
                     status = "shot";
+                    if (opponentField[y][x].isAttacked === false) {
+                        Games.updateCorrectShotsNum(gameId, indexPlayer);
+                    }
                 }
                 opponentField[y][x].isAttacked = true;
 
-                sendAttackResponse(data.gameId, { x, y }, data.indexPlayer, status);
-                if (status === "miss") Games.changeTurn(data.gameId);
-                sendTurnResponse(data.gameId);
+                sendAttackResponse(gameId, { x, y }, indexPlayer, status);
+                if (status === "miss") Games.changeTurn(gameId);
+
+                if (Games.isFinished(gameId, indexPlayer)) {
+                    Winners.updateTable(player[indexPlayer].name);
+                    broadcastUpdateWinnersResponse();
+                    sendFinishGameResponse(gameId, indexPlayer);
+                    Games.finishGame(player[indexPlayer].name);
+                    return;
+                }
+
+                sendTurnResponse(gameId);
             },
         };
 

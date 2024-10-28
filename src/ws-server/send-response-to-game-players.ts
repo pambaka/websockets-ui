@@ -1,14 +1,14 @@
 import Games from "../games";
+import { WsResponse } from "../types";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
-import getCreateGameResponse from "./get-create-game-response";
 
-const sendCreateGameResponse = (gameId: string) => {
+const sendResponseToGamePlayers = (gameId: string, response: WsResponse) => {
     const players = Games.getGamePlayers(gameId);
 
     players.forEach((player) => {
         const index = getWsEntryIndexByKey("userName", player.name);
-        wsConnections[index].ws.send(JSON.stringify(getCreateGameResponse(gameId, player.index)));
+        wsConnections[index].ws.send(JSON.stringify(response));
     });
 };
 
-export default sendCreateGameResponse;
+export default sendResponseToGamePlayers;

@@ -1,10 +1,10 @@
 import { RESPONSE_TYPE } from "../const";
-import { RoomUser } from "../types";
+import { PlayerId, WsResponse } from "../types";
 
-const getFinishGameResponse = (winner: RoomUser) => {
-    const response = {
+const getFinishGameResponse = (winnerId: PlayerId) => {
+    const response: WsResponse = {
         type: RESPONSE_TYPE.finishGame,
-        data: JSON.stringify({ winPlayer: winner.index }),
+        data: JSON.stringify({ winPlayer: winnerId }),
         id: 0,
     };
 

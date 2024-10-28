@@ -5,6 +5,7 @@ export const REQUEST_TYPE = {
     addShips: "add_ships",
     attack: "attack",
     randomAttack: "randomAttack",
+    singlePlay: "single_play",
 } as const;
 
 export const RESPONSE_TYPE = {
@@ -17,3 +18,5 @@ export const RESPONSE_TYPE = {
     turn: "turn",
     attack: "attack",
 } as const;
+
+export const RESERVED_NAME = "kotik";

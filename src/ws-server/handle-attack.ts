@@ -1,3 +1,4 @@
+import { RESERVED_NAME } from "../const";
 import Games from "../games";
 import { AttackStatus, PlayerId } from "../types";
 import Winners from "../winners";
@@ -44,15 +45,35 @@ const handleAttack = (gameId: string, indexPlayer: PlayerId, x: number, y: numbe
         sendAttackAllMissedResponse(gameId, indexPlayer, emptyCells);
     } else if (status === "miss") Games.changeTurn(gameId);
 
+    if (players[indexPlayer].name === RESERVED_NAME && (status === "shot" || status === "killed")) fireBotAttack();
+
     if (Games.isFinished(gameId, indexPlayer)) {
-        Winners.updateTable(players[indexPlayer].name);
-        broadcastUpdateWinnersResponse();
+        if (players[indexPlayer].name !== RESERVED_NAME) {
+            Winners.updateTable(players[indexPlayer].name);
+            broadcastUpdateWinnersResponse();
+        }
         sendFinishGameResponse(gameId, indexPlayer);
         Games.finishGame(gameId);
         return;
     }
 
     sendTurnResponse(gameId);
+
+    function fireBotAttack() {
+        const opponentField = players[0].field;
+        let x = 0;
+        let y = 0;
+        do {
+            x = Math.floor(Math.random() * 10);
+            y = Math.floor(Math.random() * 10);
+        } while (opponentField && opponentField[y][x].isAttacked);
+
+        handleAttack(gameId, 1, x, y);
+    }
+
+    if (players[+!indexPlayer].name === RESERVED_NAME && indexPlayer !== Games.getTurn(gameId)) {
+        fireBotAttack();
+    }
 };
 
 export default handleAttack;

@@ -9,3 +9,7 @@ httpServer.listen(HTTP_PORT);
 const WS_PORT = 3000;
 
 runWsServer(WS_PORT);
+
+process.on("uncaughtException", (error) => {
+    if (error instanceof Error) console.error(error.message);
+});

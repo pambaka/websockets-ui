@@ -1,6 +1,6 @@
 import WebSocket, { WebSocketServer } from "ws";
 import { WsRequest, WsResponse } from "../types";
-import { REQUEST_TYPE, RESPONSE_TYPE } from "../const";
+import { REQUEST_TYPE, RESERVED_NAME, RESPONSE_TYPE } from "../const";
 import getResponse from "./get-response";
 import crypto from "node:crypto";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
@@ -14,6 +14,7 @@ import Users from "../users";
 
 const runWsServer = (port: number) => {
     const wsServer = new WebSocketServer({ port });
+    console.log(`Start web socket server on the ${port} port!`);
 
     wsServer.on("connection", (ws: WebSocket) => {
         const connectionId = crypto.randomUUID();
@@ -21,6 +22,7 @@ const runWsServer = (port: number) => {
         ws.on("message", (msg) => {
             try {
                 const request: WsRequest = JSON.parse(msg.toString());
+                console.log(request.type);
 
                 if (request.type === REQUEST_TYPE.reg) {
                     const { name: userName, password }: { name: string; password: string } = JSON.parse(request.data);
@@ -30,7 +32,10 @@ const runWsServer = (port: number) => {
                     let error = false;
                     let errorText = "";
 
-                    if (userIndex !== -1 && Users.value[userIndex].password !== password) {
+                    if (userName === RESERVED_NAME) {
+                        error = true;
+                        errorText = "This name is reserved. Please use another one";
+                    } else if (userIndex !== -1 && Users.value[userIndex].password !== password) {
                         error = true;
                         errorText = "Invalid password";
                     } else if (wsIndex >= 0) {
@@ -82,7 +87,7 @@ const runWsServer = (port: number) => {
 
             const winner = Games.finishGameByName(name);
 
-            if (winner) {
+            if (winner && winner.name !== RESERVED_NAME) {
                 Winners.updateTable(winner.name);
                 const response = getFinishGameResponse(winner.index);
                 wsConnections[getWsEntryIndexByKey("userName", winner.name)].ws.send(JSON.stringify(response));

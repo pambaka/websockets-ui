@@ -1,4 +1,4 @@
-import { RESPONSE_TYPE } from "../const";
+import { RESERVED_NAME, RESPONSE_TYPE } from "../const";
 import Games from "../games";
 import { WsResponse } from "../types";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
@@ -13,7 +13,8 @@ const sendStartGameResponse = (gameId: string) => {
             id: 0,
         };
 
-        wsConnections[getWsEntryIndexByKey("userName", player.name)].ws.send(JSON.stringify(response));
+        if (player.name !== RESERVED_NAME)
+            wsConnections[getWsEntryIndexByKey("userName", player.name)].ws.send(JSON.stringify(response));
     });
 };
 

@@ -1,4 +1,4 @@
-import { REQUEST_TYPE } from "../const";
+import { REQUEST_TYPE, RESERVED_NAME } from "../const";
 import { PlayerId, WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
@@ -10,6 +10,7 @@ import sendTurnResponse from "./send-turn-response";
 import { getWsEntryIndexByKey, wsConnections } from "./data";
 import getUpdateRoomResponse from "./responses/get-update-rooms-response";
 import handleAttack from "./handle-attack";
+import getArrangedShips from "./get-arranged-ships";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
@@ -68,12 +69,20 @@ const getResponse = (request: WsRequest, name?: string) => {
 
                 handleAttack(gameId, indexPlayer, x, y);
             },
+            [REQUEST_TYPE.singlePlay]: ({ name = "" }: { name?: string }) => {
+                const gameId = Games.createGame([
+                    { name, index: 0 },
+                    { name: RESERVED_NAME, index: 1 },
+                ]);
+                Games.shouldStart(gameId, getArrangedShips(), 1);
+                sendCreateGameResponse(gameId);
+            },
         };
 
         return response[request.type]({ request, name });
     } catch (error) {
         if (error instanceof TypeError) console.error(`${request.type} request type is not supported`);
-        else if (error instanceof Error) console.error(error.message);
+        if (error instanceof Error) console.error(error.message);
     }
 };
 

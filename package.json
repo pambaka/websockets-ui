@@ -12,6 +12,7 @@
     "keywords": [],
     "license": "ISC",
     "devDependencies": {
+        "@types/node": "^22.8.0",
         "@types/ws": "^8.5.12",
         "nodemon": "^2.0.16",
         "prettier": "^3.3.3",

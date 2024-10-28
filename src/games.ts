@@ -1,3 +1,4 @@
+import { RESERVED_NAME } from "./const";
 import { Game, PlayerId, RoomUser, Ship } from "./types";
 import crypto from "node:crypto";
 
@@ -68,7 +69,9 @@ class Games {
 
     static setTurn = (gameId: string) => {
         const game = this.getGameById(gameId);
-        game.turn = Math.round(Math.random()) as PlayerId;
+
+        if (game.gameUsers.some((user) => user.name === RESERVED_NAME)) game.turn = 0;
+        else game.turn = Math.round(Math.random()) as PlayerId;
 
         return game.turn;
     };

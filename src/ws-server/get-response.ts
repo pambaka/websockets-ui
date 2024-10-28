@@ -1,4 +1,4 @@
-import { REQUEST_TYPE } from "../const";
+import { REQUEST_TYPE, RESPONSE_TYPE } from "../const";
 import { AttackStatus, PlayerId, WsRequest } from "../types";
 import broadcastUpdateRoomResponse from "./broadcast-update-room-response";
 import getRegResponse from "./get-reg-response";
@@ -11,15 +11,21 @@ import sendAttackResponse from "./send-attack-response";
 import Winners from "../winners";
 import broadcastUpdateWinnersResponse from "./broadcast-update-winners-response";
 import sendFinishGameResponse from "./send-finish-game-response";
+import { getWsEntryIndexByKey, wsConnections } from "./data";
+import getUpdateRoomResponse from "./responses/get-update-rooms-response";
 
 const getResponse = (request: WsRequest, name?: string) => {
     try {
         const response = {
             [REQUEST_TYPE.reg]: ({ request }: { request: WsRequest }) => getRegResponse(request),
             [REQUEST_TYPE.createRoom]: ({ name = "" }: { name?: string }) => {
-                Rooms.createRoom(name);
-                broadcastUpdateRoomResponse();
-                return;
+                const isRoomCreated = Rooms.createRoom(name);
+                if (isRoomCreated) broadcastUpdateRoomResponse();
+                else {
+                    const index = getWsEntryIndexByKey("userName", name);
+                    const response = getUpdateRoomResponse();
+                    wsConnections[index].ws.send(JSON.stringify(response));
+                }
             },
             [REQUEST_TYPE.addUserToRoom]: ({ request, name = "" }: { request: WsRequest; name?: string }) => {
                 const roomId: string = JSON.parse(request.data).indexRoom;

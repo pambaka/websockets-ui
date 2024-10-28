@@ -6,9 +6,15 @@ class Rooms {
     static availableRooms: Room[] = [];
 
     static createRoom = (name: string) => {
+        const roomWithUser = this.availableRooms.find((room) => room.roomUsers.some((user) => user.name === name));
+
+        if (roomWithUser) return false;
+
         const roomId = crypto.randomUUID();
         const currentUser: RoomUser = { name, index: Users.getUserIndex(name) };
         this.availableRooms.push({ roomId, roomUsers: [currentUser] });
+
+        return true;
     };
 
     static addUserToRoom = (roomId: string, name: string) => {

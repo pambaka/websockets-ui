@@ -1,14 +1,8 @@
-import { RESPONSE_TYPE } from "../const";
-import Rooms from "../rooms";
-import { WsResponse } from "../types";
 import { wsConnections } from "./data";
+import getUpdateRoomResponse from "./responses/get-update-rooms-response";
 
 const broadcastUpdateRoomResponse = () => {
-    const response: WsResponse = {
-        type: RESPONSE_TYPE.updateRoom,
-        data: JSON.stringify(Rooms.availableRooms),
-        id: 0,
-    };
+    const response = getUpdateRoomResponse();
 
     wsConnections.forEach((connection) => connection.ws.send(JSON.stringify(response)));
 };
